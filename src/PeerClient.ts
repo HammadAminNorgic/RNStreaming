@@ -17,8 +17,15 @@ import RTCSessionDescription from './RTCSessionDescription';
 import RTCView from './RTCView';
 import ScreenCapturePickerView from './ScreenCapturePickerView';
 import EventEmitter from 'events';
+const NatManager = NativeModules.NatManager  ? NativeModules.NatManager  : new Proxy(
+  {},
+  {
+    get() {
+      throw new Error(LINKING_ERROR);
+    },
+  }
+);
 
-const {VdotokStreamingModule} =NativeModules
 export class PeerClient extends EventEmitter {
 
     public ws: any;
@@ -35,9 +42,9 @@ export class PeerClient extends EventEmitter {
     public stream_paused: any = false;
     public speakerOn: any = false;
     public Init_Credentials: any = {};
-    public NATBehaviour: any = 'port-dependent';
-    public NATFiltering: any = 'port-dependent';
-    public publicIps: any = ['192.168.8.38'];
+    public NATBehaviour: any = 'not detected';
+    public NATFiltering: any = 'not detected';
+    public publicIps: any = [];
     public callParamsData: any = {}
     public stunHost: any;
     public stunPort: any;
@@ -57,54 +64,51 @@ export class PeerClient extends EventEmitter {
         setTimeout(() => {
 
             if (_Credentials.host && _Credentials.projectId && _Credentials.stunHost && _Credentials.stunPort) {
-
+              // NatManager.natTest("r-stun2.vdotok.dev",3478).then((e:any)=>{
+              //   console.log('this is nat results',e)
+              // })
                 this.project_id = _Credentials.projectId
                 this.Init_Credentials = _Credentials
                 this.stunHost = _Credentials.stunHost
                 this.stunPort = _Credentials.stunPort
                 //   stunHost:stunCredentials.host,
                 //   stunPort:stunCredentials.port
-                //   console.log('nat module =='+Platform.OS,"==",NativeModules.NatManager)
-                //   NatManager.natTest("r-stun2.vdotok.dev",3478).then((e:any)=>{
+                  console.log('nat module =='+Platform.OS,"==",NativeModules.NatManager)
+                  NatManager.natTest("r-stun2.vdotok.dev",3478).then((e:any)=>{
 
                 // console.log("Got Nat filtering and behaviour",e)
-                //     if(Platform.OS=='android'){
-                //         // filtering behaviur ips
-                //         let rawString:any=e
-                //         console.log("it is raw string-->",rawString);
+                    if(Platform.OS=='android'){
+                        // filtering behaviur ips
+                        let rawString:any=e
+                        console.log("it is raw string-->",rawString);
 
-                //         let stringToArray:any=rawString.split("<->")
-                //         console.log("it is stringToArray-->",stringToArray);
+                        let stringToArray:any=rawString.split("<->")
+                        console.log("it is stringToArray-->",stringToArray);
 
-                //         let filtering:any=stringToArray[0]
-                //         let behaviour:any=stringToArray[1]
-                //         let a:string=stringToArray[2]
-                //          a=a.replace("[","")
-                //          a=a.replace("]","")
-                //          console.log(a)
-                //          a=a.split(",")
-                //         let ips:any=a
+                        let filtering:any=stringToArray[0]
+                        let behaviour:any=stringToArray[1]
+                        let a:string=stringToArray[2]
+                         a=a.replace("[","")
+                         a=a.replace("]","")
+                         console.log(a)
+                         a=a.split(",")
+                        let ips:any=a
 
-                // console.log("it is data after processing-->",filtering,behaviour,ips);
+                console.log("it is data after processing-->",filtering,behaviour,ips);
 
-                // // if(filtering && behaviour && ips){
-                //     this.NATBehaviour=behaviour
-                //     this.NATFiltering=filtering
-                //     this.publicIps=ips
+                // if(filtering && behaviour && ips){
+                    this.NATBehaviour=behaviour
+                    this.NATFiltering=filtering
+                    this.publicIps=ips
                 this.Connect(_Credentials.host);
-                // }else{
-                //     // alert("not got NAt filteriing,behaviour or ips")
-                //     this.emit("error", { type: "NAT_DETECTION_ISSUE", message: "Issue on detecting NAT beaviour, NAT Filtering or PublicIps" });
-                // }
-
-
-
-
-
+                }else{
+                    // alert("not got NAt filteriing,behaviour or ips")
+                    this.emit("error", { type: "NAT_DETECTION_ISSUE", message: "Issue on detecting NAT beaviour, NAT Filtering or PublicIps" });
+                }
 
                 // }
 
-                //   })
+                  })
 
 
                 //   host: userData.media_server_map.complete_address,
@@ -528,7 +532,7 @@ export class PeerClient extends EventEmitter {
         // Handle Error
       };
     } else {
-        console.log("mediaDeviceskkkkkk",VdotokStreamingModule)
+       
       stream = await mediaDevices.getUserMedia({
         audio: true,
         video: true
