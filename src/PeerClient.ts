@@ -102,19 +102,18 @@ export class PeerClient extends EventEmitter {
                     this.publicIps=ips
                 this.Connect(_Credentials.host);
                 }else{
+                  console.log('nat results in ios',e)
+                  this.NATBehaviour='not detected ios'
+                  this.NATFiltering='not detected ios'
+                  this.publicIps=['dummyport']
+                   this.Connect(_Credentials.host);
                     // alert("not got NAt filteriing,behaviour or ips")
-                    this.emit("error", { type: "NAT_DETECTION_ISSUE", message: "Issue on detecting NAT beaviour, NAT Filtering or PublicIps" });
+                    // this.emit("error", { type: "NAT_DETECTION_ISSUE", message: "Issue on detecting NAT beaviour, NAT Filtering or PublicIps" });
                 }
 
                 // }
 
                   })
-
-
-                //   host: userData.media_server_map.complete_address,
-                //   projectId: project_id,
-                //   stunHost:stunCredentials.host,
-                //   stunPort:stunCredentials.port
             } else {
                 this.emit("error", { type: "INVALID_INITIALIZATION_ARGUMENTS", message: "Please make sure you provide projectId,host,stunHost,stunPort while initializing !" });
 

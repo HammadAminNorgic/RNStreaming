@@ -6,6 +6,20 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		37F6C12D292F815E007BA12B /* NatManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F6C12C292F815E007BA12B /* NatManager.swift */; };
+		37F6C12F292F81BD007BA12B /* NatManagerBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 37F6C12E292F81BD007BA12B /* NatManagerBridge.m */; };
+		37F6C139292F8215007BA12B /* StunMessageType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F6C130292F8214007BA12B /* StunMessageType.swift */; };
+		37F6C13A292F8215007BA12B /* StunAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F6C131292F8214007BA12B /* StunAttributes.swift */; };
+		37F6C13B292F8215007BA12B /* CommonProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F6C132292F8214007BA12B /* CommonProtocols.swift */; };
+		37F6C13C292F8215007BA12B /* StunClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F6C133292F8214007BA12B /* StunClient.swift */; };
+		37F6C13D292F8215007BA12B /* StunPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F6C134292F8215007BA12B /* StunPacket.swift */; };
+		37F6C13E292F8215007BA12B /* NatTypeDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F6C135292F8215007BA12B /* NatTypeDetection.swift */; };
+		37F6C13F292F8215007BA12B /* NatTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F6C136292F8215007BA12B /* NatTypeTests.swift */; };
+		37F6C140292F8215007BA12B /* StunHandlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F6C137292F8215007BA12B /* StunHandlers.swift */; };
+		37F6C141292F8215007BA12B /* StunServerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F6C138292F8215007BA12B /* StunServerError.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		58B511D91A9E6C8500147676 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -20,6 +34,18 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libVdotokStreaming.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libVdotokStreaming.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		37F6C12B292F815E007BA12B /* VdotokStreaming-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "VdotokStreaming-Bridging-Header.h"; sourceTree = "<group>"; };
+		37F6C12C292F815E007BA12B /* NatManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NatManager.swift; sourceTree = "<group>"; };
+		37F6C12E292F81BD007BA12B /* NatManagerBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NatManagerBridge.m; sourceTree = "<group>"; };
+		37F6C130292F8214007BA12B /* StunMessageType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StunMessageType.swift; sourceTree = "<group>"; };
+		37F6C131292F8214007BA12B /* StunAttributes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StunAttributes.swift; sourceTree = "<group>"; };
+		37F6C132292F8214007BA12B /* CommonProtocols.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonProtocols.swift; sourceTree = "<group>"; };
+		37F6C133292F8214007BA12B /* StunClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StunClient.swift; sourceTree = "<group>"; };
+		37F6C134292F8215007BA12B /* StunPacket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StunPacket.swift; sourceTree = "<group>"; };
+		37F6C135292F8215007BA12B /* NatTypeDetection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NatTypeDetection.swift; sourceTree = "<group>"; };
+		37F6C136292F8215007BA12B /* NatTypeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NatTypeTests.swift; sourceTree = "<group>"; };
+		37F6C137292F8215007BA12B /* StunHandlers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StunHandlers.swift; sourceTree = "<group>"; };
+		37F6C138292F8215007BA12B /* StunServerError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StunServerError.swift; sourceTree = "<group>"; };
 		B3E7B5881CC2AC0600A0062D /* VdotokStreaming.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VdotokStreaming.h; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* VdotokStreaming.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VdotokStreaming.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -47,8 +73,20 @@
 			isa = PBXGroup;
 			children = (
 				B3E7B5881CC2AC0600A0062D /* VdotokStreaming.h */,
+				37F6C12E292F81BD007BA12B /* NatManagerBridge.m */,
+				37F6C132292F8214007BA12B /* CommonProtocols.swift */,
+				37F6C135292F8215007BA12B /* NatTypeDetection.swift */,
+				37F6C136292F8215007BA12B /* NatTypeTests.swift */,
+				37F6C131292F8214007BA12B /* StunAttributes.swift */,
+				37F6C133292F8214007BA12B /* StunClient.swift */,
+				37F6C137292F8215007BA12B /* StunHandlers.swift */,
+				37F6C130292F8214007BA12B /* StunMessageType.swift */,
+				37F6C134292F8215007BA12B /* StunPacket.swift */,
+				37F6C138292F8215007BA12B /* StunServerError.swift */,
+				37F6C12C292F815E007BA12B /* NatManager.swift */,
 				B3E7B5891CC2AC0600A0062D /* VdotokStreaming.m */,
 				134814211AA4EA7D00B7C361 /* Products */,
+				37F6C12B292F815E007BA12B /* VdotokStreaming-Bridging-Header.h */,
 			);
 			sourceTree = "<group>";
 		};
@@ -83,6 +121,7 @@
 				TargetAttributes = {
 					58B511DA1A9E6C8500147676 = {
 						CreatedOnToolsVersion = 6.1.1;
+						LastSwiftMigration = 1400;
 					};
 				};
 			};
@@ -109,6 +148,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37F6C140292F8215007BA12B /* StunHandlers.swift in Sources */,
+				37F6C13A292F8215007BA12B /* StunAttributes.swift in Sources */,
+				37F6C13D292F8215007BA12B /* StunPacket.swift in Sources */,
+				37F6C12F292F81BD007BA12B /* NatManagerBridge.m in Sources */,
+				37F6C12D292F815E007BA12B /* NatManager.swift in Sources */,
+				37F6C13F292F8215007BA12B /* NatTypeTests.swift in Sources */,
+				37F6C139292F8215007BA12B /* StunMessageType.swift in Sources */,
+				37F6C13E292F8215007BA12B /* NatTypeDetection.swift in Sources */,
+				37F6C141292F8215007BA12B /* StunServerError.swift in Sources */,
+				37F6C13C292F8215007BA12B /* StunClient.swift in Sources */,
+				37F6C13B292F8215007BA12B /* CommonProtocols.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -213,32 +263,41 @@
 		58B511F01A9E6C8500147676 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../../../React/**",
 					"$(SRCROOT)/../../react-native/React/**",
 				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = VdotokStreaming;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "VdotokStreaming-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
 		58B511F11A9E6C8500147676 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../../../React/**",
 					"$(SRCROOT)/../../react-native/React/**",
 				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = VdotokStreaming;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "VdotokStreaming-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};

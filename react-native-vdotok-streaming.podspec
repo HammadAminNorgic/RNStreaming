@@ -14,10 +14,11 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => "12.0" }
   s.source       = { :git => "https://github.com/HammadAminNorgic/react-native-vdotok-streaming.git", :tag => "#{s.version}" }
 
-  s.source_files = "ios/**/*.{h,m,mm}"
+  s.source_files = "ios/**/*.{h,m,mm,swift}"
 
   s.dependency "React-Core"
-  s.dependency          'JitsiWebRTC', '~> 106.0.0'
+  s.dependency 'JitsiWebRTC', '~> 106.0.0'
+  s.dependency "SwiftNIO"
 
   # Don't install the dependencies when we run `pod install` in the old architecture.
   if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then
