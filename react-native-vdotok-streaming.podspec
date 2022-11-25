@@ -17,7 +17,8 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,mm,swift}"
 
   s.dependency "React-Core"
-  s.dependency 'JitsiWebRTC', '~> 106.0.0'
+  # s.dependency 'JitsiWebRTC', '~> 106.0.0'
+  s.ios.vendored_frameworks = 'ios/WebRTC.framework'
   s.dependency "SwiftNIO"
 
   # Don't install the dependencies when we run `pod install` in the old architecture.

@@ -158,8 +158,8 @@ const endForegroundService=async()=>{
   // await notifee.stopForegroundService()
   setPauseAudio(false)
   setPausedVideo(false)
-setCallReceived(false)
-endTimer()
+  setCallReceived(false)
+  endTimer()
 try {
 	// await notifee.stopForegroundService();
 } catch( err ) {
