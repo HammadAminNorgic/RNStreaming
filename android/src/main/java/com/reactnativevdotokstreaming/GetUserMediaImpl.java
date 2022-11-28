@@ -3,6 +3,7 @@ package com.reactnativevdotokstreaming;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -55,6 +56,8 @@ class GetUserMediaImpl {
 
     private Promise displayMediaPromise;
     private Intent mediaProjectionPermissionResultData;
+  private ReadableMap screenShareConstraints;
+  private MediaProjectionManager mediaProjectionManager;
 
     GetUserMediaImpl(VdotokStreamingModule vdotokstreamingmodule, ReactApplicationContext reactContext) {
         this.vdotokstreamingmodule = vdotokstreamingmodule;
@@ -84,13 +87,27 @@ class GetUserMediaImpl {
                 super.onActivityResult(activity, requestCode, resultCode, data);
                 if (requestCode == PERMISSION_REQUEST_CODE) {
                     if (resultCode != Activity.RESULT_OK) {
+                      Log.d("jamm", "Dom exceeption: ");
                         displayMediaPromise.reject("DOMException", "NotAllowedError");
                         displayMediaPromise = null;
                         return;
                     }
-
+                  Log.d("jamm", "in get display media user imp listener activ");
                     mediaProjectionPermissionResultData = data;
-                    createScreenStream();
+                  Log.d("jamm", "onActivityResult: "+mediaProjectionManager.toString());
+                  if(mediaProjectionManager !=null){
+
+                    MediaProjection projection= mediaProjectionManager.getMediaProjection(
+                      resultCode, data);
+                    try {
+                      Log.d("jamm", "onActivityResult: projection"+projection);
+                      vdotokstreamingmodule.createPeerConnectionFactoryForScreenShare(projection);
+                    } catch (Throwable e) {
+                      e.printStackTrace();
+                    }
+//                      createScreenStream();
+                  }
+//                    createScreenStream();
                 }
             }
         });
@@ -250,12 +267,13 @@ class GetUserMediaImpl {
         }
     }
 
-    void getDisplayMedia(Promise promise) {
+    void getDisplayMedia(ReadableMap constraints,Promise promise) {
+      Log.d("jamm", "in get display media user imp");
         if (this.displayMediaPromise != null) {
             promise.reject(new RuntimeException("Another operation is pending."));
             return;
         }
-
+      screenShareConstraints=constraints;
         Activity currentActivity = this.reactContext.getCurrentActivity();
         if (currentActivity == null) {
             promise.reject(new RuntimeException("No current Activity."));
@@ -264,9 +282,10 @@ class GetUserMediaImpl {
 
         this.displayMediaPromise = promise;
 
-        MediaProjectionManager mediaProjectionManager =
+         mediaProjectionManager =
             (MediaProjectionManager) currentActivity.getApplication().getSystemService(
                 Context.MEDIA_PROJECTION_SERVICE);
+      Log.d("jamm", "proj managr"+mediaProjectionManager);
 
         if (mediaProjectionManager != null) {
             UiThreadUtil.runOnUiThread(new Runnable() {
@@ -282,22 +301,33 @@ class GetUserMediaImpl {
         }
     }
 
-    private void createScreenStream() {
+    public void createScreenStream() {
+      Log.d("jamm", "createScreenStream: ");
         VideoTrack track = createScreenTrack();
 
         if (track == null) {
             displayMediaPromise.reject(new RuntimeException("ScreenTrack is null."));
         } else {
-            createStream(new MediaStreamTrack[]{track}, (streamId, tracksInfo) -> {
-                WritableMap data = Arguments.createMap();
+          Log.d("jamm", "createScreenStream: "+screenShareConstraints.toString());
 
+          AudioTrack audioTrack = createAudioTrack(screenShareConstraints);
+            createStream(new MediaStreamTrack[]{audioTrack,track}, (streamId, tracksInfo) -> {
+                WritableMap data = Arguments.createMap();
+              Log.d("jamm", "createStream");
                 data.putString("streamId", streamId);
 
                 if (tracksInfo.size() == 0) {
                     displayMediaPromise.reject(new RuntimeException("No ScreenTrackInfo found."));
                 } else {
-                    data.putMap("track", tracksInfo.get(0));
-                    displayMediaPromise.resolve(data);
+//                    data.putMap("track", tracksInfo.get(0));
+//                    displayMediaPromise.resolve(data);
+                  WritableArray tracksInfoWritableArray = Arguments.createArray();
+                  for (WritableMap trackInfo : tracksInfo) {
+                    tracksInfoWritableArray.pushMap(trackInfo);
+                  }
+                  Log.d("jamm", "i am goin to resplve");
+                  data.putArray("tracks",tracksInfoWritableArray);
+                  displayMediaPromise.resolve(data);
                 }
             });
         }

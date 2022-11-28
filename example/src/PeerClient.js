@@ -5,7 +5,7 @@ import React, { useState,useEffect,useRef } from 'react'
 import { Text, TouchableOpacity, View,Image, SafeAreaView } from 'react-native'
 // import { PeerClient} from './PeerClient'
 import {RTCView,PeerClient} from 'react-native-vdotok-streaming'
-// import notifee, { AndroidImportance } from '@notifee/react-native';
+import notifee, { AndroidImportance } from '@notifee/react-native';
 
 const PeerClientApp = () => {
   let project_id = '6NE92I'
@@ -161,7 +161,7 @@ const endForegroundService=async()=>{
   setCallReceived(false)
   endTimer()
 try {
-	// await notifee.stopForegroundService();
+	await notifee.stopForegroundService();
 } catch( err ) {
 	// Handle Error
 };
@@ -350,22 +350,22 @@ sdk.MuteMic()
     if (sdk) {
         if(type !== 'video'){
             try {
-                // const channelId = await notifee.createChannel( {
-                //     id: 'screen_capture',
-                //     name: 'Screen Capture',
-                //     lights: false,
-                //     vibration: false,
-                //     importance: AndroidImportance.DEFAULT
-                // } );
+                const channelId = await notifee.createChannel( {
+                    id: 'screen_capture',
+                    name: 'Screen Capture',
+                    lights: false,
+                    vibration: false,
+                    importance: AndroidImportance.DEFAULT
+                } );
             
-                // await notifee.displayNotification( {
-                //     title: 'Screen Capture',
-                //     body: 'This notification will be here until you stop capturing.',
-                //     android: {
-                //         channelId,
-                //         asForegroundService: true
-                //     }
-                // } );
+                await notifee.displayNotification( {
+                    title: 'Screen Capture',
+                    body: 'This notification will be here until you stop capturing.',
+                    android: {
+                        channelId,
+                        asForegroundService: true
+                    }
+                } );
                 // setTimeout(() => {
                       sdk.OneToOneCall({
                     to: [user2Data.ref_id],

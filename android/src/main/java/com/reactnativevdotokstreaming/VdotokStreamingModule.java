@@ -3,7 +3,17 @@ package com.reactnativevdotokstreaming;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
+import android.media.AudioFormat;
+import android.media.AudioPlaybackCaptureConfiguration;
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
+import android.media.projection.MediaProjection;
 import android.os.Build;
 import android.util.Log;
 import android.util.SparseArray;
@@ -23,6 +33,7 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,9 +42,12 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
+import org.jetbrains.annotations.NotNull;
 import org.webrtc.*;
 import org.webrtc.audio.AudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule;
+
+import kotlin.jvm.internal.Intrinsics;
 
 @ReactModule(name = "VdotokStreamingModule")
 public class VdotokStreamingModule extends ReactContextBaseJavaModule {
@@ -48,6 +62,12 @@ public class VdotokStreamingModule extends ReactContextBaseJavaModule {
     final Map<String, MediaStream> localStreams;
 
     private final GetUserMediaImpl getUserMediaImpl;
+
+
+  public ReactApplicationContext appContext;
+  private AudioRecord AppAudioRecorder;
+  public AudioRecord screenShareRecorder;
+  public MediaProjection currentMediaProjection;
 
     public static class Options {
         private VideoEncoderFactory videoEncoderFactory = null;
@@ -85,66 +105,340 @@ public class VdotokStreamingModule extends ReactContextBaseJavaModule {
 
     public VdotokStreamingModule(ReactApplicationContext reactContext, Options options) {
         super(reactContext);
-
-        mPeerConnectionObservers = new SparseArray<>();
-        localStreams = new HashMap<>();
-
-        AudioDeviceModule adm = null;
-        VideoEncoderFactory encoderFactory = null;
-        VideoDecoderFactory decoderFactory = null;
-        Loggable injectableLogger = null;
-        Logging.Severity loggingSeverity = null;
-
-        if (options != null) {
-            adm = options.audioDeviceModule;
-            encoderFactory = options.videoEncoderFactory;
-            decoderFactory = options.videoDecoderFactory;
-            injectableLogger = options.injectableLogger;
-            loggingSeverity = options.loggingSeverity;
-        }
-
-        PeerConnectionFactory.initialize(
-            PeerConnectionFactory.InitializationOptions.builder(reactContext)
-                .setNativeLibraryLoader(new LibraryLoader())
-                .setInjectableLogger(injectableLogger, loggingSeverity)
-                .createInitializationOptions());
-
-        if (encoderFactory == null || decoderFactory == null) {
-            // Initialize EGL context required for HW acceleration.
-            EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
-
-            if (eglContext != null) {
-                encoderFactory
-                    = new DefaultVideoEncoderFactory(
-                    eglContext,
-                    /* enableIntelVp8Encoder */ true,
-                    /* enableH264HighProfile */ false);
-                decoderFactory = new DefaultVideoDecoderFactory(eglContext);
-            } else {
-                encoderFactory = new SoftwareVideoEncoderFactory();
-                decoderFactory = new SoftwareVideoDecoderFactory();
-            }
-        }
-
-        if (adm == null) {
-            adm = JavaAudioDeviceModule.builder(reactContext)
-//                .setEnableVolumeLogger(false)
-                .createAudioDeviceModule();
-        }
-
-        mFactory
-            = PeerConnectionFactory.builder()
-                .setAudioDeviceModule(adm)
-                .setVideoEncoderFactory(encoderFactory)
-                .setVideoDecoderFactory(decoderFactory)
-                .createPeerConnectionFactory();
-
-        // Saving the encoder and decoder factories to get codec info later when needed
-        mVideoEncoderFactory = encoderFactory;
-        mVideoDecoderFactory = decoderFactory;
-
-        getUserMediaImpl = new GetUserMediaImpl(this, reactContext);
+      appContext=reactContext;
+      getUserMediaImpl = new GetUserMediaImpl(this, reactContext);
+      mPeerConnectionObservers = new SparseArray<>();
+      localStreams = new HashMap<>();
+//        AudioDeviceModule adm = null;
+//        VideoEncoderFactory encoderFactory = null;
+//        VideoDecoderFactory decoderFactory = null;
+//        Loggable injectableLogger = null;
+//        Logging.Severity loggingSeverity = null;
+//
+//        if (options != null) {
+//            adm = options.audioDeviceModule;
+//            encoderFactory = options.videoEncoderFactory;
+//            decoderFactory = options.videoDecoderFactory;
+//            injectableLogger = options.injectableLogger;
+//            loggingSeverity = options.loggingSeverity;
+//        }
+//
+//        PeerConnectionFactory.initialize(
+//            PeerConnectionFactory.InitializationOptions.builder(reactContext)
+//                .setNativeLibraryLoader(new LibraryLoader())
+//                .setInjectableLogger(injectableLogger, loggingSeverity)
+//                .createInitializationOptions());
+//
+//        if (encoderFactory == null || decoderFactory == null) {
+//            // Initialize EGL context required for HW acceleration.
+//            EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
+//
+//            if (eglContext != null) {
+//                encoderFactory
+//                    = new DefaultVideoEncoderFactory(
+//                    eglContext,
+//                    /* enableIntelVp8Encoder */ true,
+//                    /* enableH264HighProfile */ false);
+//                decoderFactory = new DefaultVideoDecoderFactory(eglContext);
+//            } else {
+//                encoderFactory = new SoftwareVideoEncoderFactory();
+//                decoderFactory = new SoftwareVideoDecoderFactory();
+//            }
+//        }
+//
+//        if (adm == null) {
+//            adm = JavaAudioDeviceModule.builder(reactContext)
+////                .setEnableVolumeLogger(false)
+//                .createAudioDeviceModule();
+//        }
+//
+//        mFactory
+//            = PeerConnectionFactory.builder()
+//                .setAudioDeviceModule(adm)
+//                .setVideoEncoderFactory(encoderFactory)
+//                .setVideoDecoderFactory(decoderFactory)
+//                .createPeerConnectionFactory();
+//
+//        // Saving the encoder and decoder factories to get codec info later when needed
+//        mVideoEncoderFactory = encoderFactory;
+//        mVideoDecoderFactory = decoderFactory;
+//
+//        getUserMediaImpl = new GetUserMediaImpl(this, reactContext);
     }
+  public void initPcFactory (AudioDeviceModule deviceModule) throws Throwable {
+    AudioDeviceModule adm = null;
+    VideoEncoderFactory encoderFactory = null;
+    VideoDecoderFactory decoderFactory = null;
+    Loggable injectableLogger = null;
+    Logging.Severity loggingSeverity = null;
+
+//      if (options != null) {
+//        adm = options.audioDeviceModule;
+//        encoderFactory = options.videoEncoderFactory;
+//        decoderFactory = options.videoDecoderFactory;
+//        injectableLogger = options.injectableLogger;
+//        loggingSeverity = options.loggingSeverity;
+//      }
+
+    PeerConnectionFactory.initialize(
+      PeerConnectionFactory.InitializationOptions.builder(appContext)
+        .setNativeLibraryLoader(new LibraryLoader())
+        .setInjectableLogger(injectableLogger, loggingSeverity)
+        .createInitializationOptions());
+
+    if (encoderFactory == null || decoderFactory == null) {
+      // Initialize EGL context required for HW acceleration.
+      EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
+
+      if (eglContext != null) {
+        encoderFactory
+          = new DefaultVideoEncoderFactory(
+          eglContext,
+          /* enableIntelVp8Encoder */ true,
+          /* enableH264HighProfile */ true);
+        decoderFactory = new DefaultVideoDecoderFactory(eglContext);
+      } else {
+        encoderFactory = new SoftwareVideoEncoderFactory();
+        decoderFactory = new SoftwareVideoDecoderFactory();
+      }
+    }
+
+    if (adm == null) {
+      if(deviceModule != null){
+        Log.d("mylogs", "adm is normal type ");
+//          adm=createJavaAudioDevice();
+        adm=deviceModule;
+      }else{
+        Log.d("mylogs", "adm is screen type ");
+        adm = JavaAudioDeviceModule.builder(appContext)
+          .createAudioDeviceModule();
+      }
+
+    }
+
+    mFactory
+      = PeerConnectionFactory.builder()
+      .setAudioDeviceModule(adm)
+      .setVideoEncoderFactory(new SoftwareVideoEncoderFactory())
+      .setVideoDecoderFactory(new SoftwareVideoDecoderFactory())
+      .setOptions(new PeerConnectionFactory.Options())
+      .createPeerConnectionFactory();
+
+    // Saving the encoder and decoder factories to get codec info later when needed
+//    mVideoEncoderFactory = encoderFactory;
+//    mVideoDecoderFactory = decoderFactory;
+    mVideoEncoderFactory = new SoftwareVideoEncoderFactory();
+    mVideoDecoderFactory = new SoftwareVideoDecoderFactory();
+
+//      getUserMediaImpl = new GetUserMediaImpl(this, appContext);
+  }
+
+  public AudioDeviceModule createJavaAudioDevice() throws Throwable {
+    JavaAudioDeviceModule.AudioRecordErrorCallback audioRecordErrorCallback = new JavaAudioDeviceModule.AudioRecordErrorCallback() {
+      public void onWebRtcAudioRecordInitError(String errorMessage) {
+        Log.d(TAG, "onWebRtcAudioRecordInitError: mylogs" + errorMessage);
+      }
+
+      public void onWebRtcAudioRecordStartError(JavaAudioDeviceModule.AudioRecordStartErrorCode errorCode, String errorMessage) {
+        Log.d(TAG, "onWebRtcAudioRecordStartError: mylogs" + errorMessage);
+
+      }
+
+      public void onWebRtcAudioRecordError(String errorMessage) {
+        Log.d(TAG, "onWebRtcAudioRecordError: mylogs" + errorMessage);
+
+      }
+    };
+    JavaAudioDeviceModule.AudioTrackErrorCallback audioTrackErrorCallback = new JavaAudioDeviceModule.AudioTrackErrorCallback() {
+      public void onWebRtcAudioTrackInitError(String errorMessage) {
+        Log.d(TAG, "onWebRtcAudioTrackInitError: mylogs" + errorMessage);
+
+      }
+
+      public void onWebRtcAudioTrackStartError(JavaAudioDeviceModule.AudioTrackStartErrorCode errorCode, String errorMessage) {
+        Log.d(TAG, "onWebRtcAudioTrackStartError: mylogs" + errorMessage);
+
+      }
+
+      public void onWebRtcAudioTrackError(String errorMessage) {
+        Log.d(TAG, "onWebRtcAudioTrackError: mylogs" + errorMessage);
+
+      }
+    };
+    Log.d("mylogs", "createJavaAudioDevice");
+    AppAudioRecorder=getMicRecorder();
+    Log.d("mylogs", "AppAudioRecorder: for audio call "+AppAudioRecorder.toString());
+
+    return JavaAudioDeviceModule.builder(this.getReactApplicationContext())
+      .setSampleRate(44100)
+      .setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+      .setUseStereoInput(true).setAudioSource(8)
+      .setAudioFormat(AudioFormat.ENCODING_PCM_16BIT)
+      .setAudioRecordErrorCallback(audioRecordErrorCallback)
+      .setAudioTrackErrorCallback(audioTrackErrorCallback)
+      .setAudioRecorder(AppAudioRecorder)
+      .createAudioDeviceModule();
+  }
+  private AudioRecord getMicRecorder() throws Throwable {
+    Log.d("mylogs", "getMicRecorder");
+
+    return createMicRecorder(
+      MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+      44100,
+      AudioFormat.CHANNEL_IN_STEREO,
+      AudioFormat.ENCODING_PCM_16BIT
+    );
+  }
+
+  @NotNull
+  public final AudioRecord createMicRecorder(int audioSource, int sampleRate, int channelConfig, int audioFormat) throws Throwable {
+    Log.d("hamz->", "createMicRecorder");
+
+    int bytesPerFrame = audioFormat * getBytesPerSample(2);
+    int framesPerBuffer = sampleRate / 100;
+    ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytesPerFrame * framesPerBuffer);
+    int minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat);
+    int bufferSizeInBytes = Math.max(2 * minBufferSize, byteBuffer.capacity());
+    return Build.VERSION.SDK_INT >= 23 ? createAudioRecordOnMOrHigher(audioSource, sampleRate, channelConfig, audioFormat, bufferSizeInBytes) : createAudioRecordOnLowerThanM(audioSource, sampleRate, channelConfig, audioFormat, bufferSizeInBytes);
+  }
+
+  private static final int getBytesPerSample(int audioFormat) throws Throwable {
+    Log.d("hamz->", "getBytesPerSample");
+
+    byte var10000;
+    switch (audioFormat) {
+      case 1:
+      case 2:
+      case 13:
+        var10000 = 2;
+        break;
+      case 3:
+        var10000 = 1;
+        break;
+      case 4:
+        var10000 = 4;
+        break;
+      default:
+        throw (Throwable) (new IllegalArgumentException("Bad audio format " + audioFormat));
+    }
+
+    return var10000;
+  }
+
+
+  @Nullable
+  private final AudioRecord createAudioRecordOnLowerThanM(int audioSource, int sampleRate, int channelConfig, int audioFormat, int bufferSizeInBytes) {
+
+    Log.d("CreateMicRecorder", "createAudioRecordOnLowerThanM");
+    if (ActivityCompat.checkSelfPermission(this.getReactApplicationContext(), Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+      return new AudioRecord(audioSource, sampleRate, channelConfig, audioFormat, bufferSizeInBytes);
+
+    }
+
+    return null;
+  };
+
+
+
+
+  @Nullable
+  @TargetApi(23)
+  private final AudioRecord createAudioRecordOnMOrHigher(int audioSource, int sampleRate, int channelConfig, int audioFormat, int bufferSizeInBytes) {
+    Log.d("CreateMicRecorder", "createAudioRecordOnMOrHigher");
+    Log.d("hamz->", "createAudioRecordOnMOrHigher");
+
+    if (ActivityCompat.checkSelfPermission(this.getReactApplicationContext(), Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+      AudioRecord var10000 = new AudioRecord.Builder().setAudioSource(audioSource).setAudioFormat((new android.media.AudioFormat.Builder()).setEncoding(audioFormat).setSampleRate(sampleRate).setChannelMask(channelConfig).build()).setBufferSizeInBytes(bufferSizeInBytes).build();
+      Intrinsics.checkNotNullExpressionValue(var10000, "AudioRecord.Builder().se…ufferSizeInBytes).build()");
+      return var10000;
+    }
+    return null;
+  };
+
+  @TargetApi(29)
+  @NotNull
+  public  AudioRecord createAppAudioRecorder(@NotNull MediaProjection mediaProjection, int sampleRate) {
+    Log.d("hamz->", "createAppAudioRecorder ss: ");
+    Intrinsics.checkNotNullParameter(mediaProjection, "mediaProjection");
+    AudioPlaybackCaptureConfiguration var10000 = (new AudioPlaybackCaptureConfiguration.Builder(mediaProjection)).addMatchingUsage(AudioAttributes.USAGE_MEDIA).build();
+    Intrinsics.checkNotNullExpressionValue(var10000, "AudioPlaybackCaptureConf…utes.USAGE_MEDIA).build()");
+    AudioPlaybackCaptureConfiguration config = var10000;
+    if (ActivityCompat.checkSelfPermission(this.getReactApplicationContext(), Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+      AudioRecord var3 = (new android.media.AudioRecord.Builder()).setAudioPlaybackCaptureConfig(config).setAudioFormat((new android.media.AudioFormat.Builder()).setEncoding(AudioFormat.ENCODING_DEFAULT).setSampleRate(sampleRate).setChannelMask(12).build()).build();
+      Intrinsics.checkNotNullExpressionValue(var3, "AudioRecord.Builder().se…EO).build()\n    ).build()");
+      Log.d("hamz->", "createAppAudioRecorder  created ss: "+var3.toString());
+      Log.d("hamz->", "createAppAudioRecorder return"+var3.toString());
+      return var3;
+    }
+    Log.d("hamz->", "createAppAudioRecorder return null (not good)");
+
+    return null;
+  };
+
+
+  public AudioDeviceModule createJavaAudioDeviceScreenShare(AudioRecord recorder) throws Throwable {
+    Log.d("hamz->", "createJavaAudioDeviceScreenShare: "+recorder.toString());
+    JavaAudioDeviceModule.AudioRecordErrorCallback audioRecordErrorCallback = new JavaAudioDeviceModule.AudioRecordErrorCallback() {
+      public void onWebRtcAudioRecordInitError(String errorMessage) {
+        Log.d(TAG, "onWebRtcAudioRecordInitError: ham->" + errorMessage);
+
+
+      }
+
+      public void onWebRtcAudioRecordStartError(JavaAudioDeviceModule.AudioRecordStartErrorCode errorCode, String errorMessage) {
+        Log.d(TAG, "onWebRtcAudioRecordStartError: myLogs" + errorMessage);
+
+      }
+
+      public void onWebRtcAudioRecordError(String errorMessage) {
+        Log.d(TAG, "onWebRtcAudioRecordError: myLogs" + errorMessage);
+
+
+      }
+    };
+    JavaAudioDeviceModule.AudioTrackErrorCallback audioTrackErrorCallback = new JavaAudioDeviceModule.AudioTrackErrorCallback() {
+      public void onWebRtcAudioTrackInitError(String errorMessage) {
+        Log.d(TAG, "onWebRtcAudioTrackInitError: myLogs" + errorMessage);
+
+      }
+
+      public void onWebRtcAudioTrackStartError(JavaAudioDeviceModule.AudioTrackStartErrorCode errorCode, String errorMessage) {
+        Log.d(TAG, "onWebRtcAudioTrackStartError: myLogs" + errorMessage);
+
+      }
+
+      public void onWebRtcAudioTrackError(String errorMessage) {
+        Log.d(TAG, "onWebRtcAudioTrackError: myLogs" + errorMessage);
+
+      }
+    };
+
+
+    AppAudioRecorder=recorder;
+
+    return JavaAudioDeviceModule.builder(this.getReactApplicationContext())
+      .setSampleRate(44100)
+      .setAudioSource(MediaRecorder.AudioSource.REMOTE_SUBMIX)
+      .setUseStereoInput(true).setAudioSource(8)
+      .setAudioFormat(AudioFormat.ENCODING_PCM_16BIT)
+      .setAudioRecordErrorCallback(audioRecordErrorCallback)
+      .setAudioTrackErrorCallback(audioTrackErrorCallback)
+      .setAudioRecorder(recorder)
+      .createAudioDeviceModule();
+
+  }
+
+
+  @ReactMethod
+  public void createPeerConnectionFactoryForScreenShare(MediaProjection mediaProjection) throws Throwable {
+    Log.d("jamm", "createPeerConnectionFactoryForScreenShare"+mediaProjection.toString());
+    Log.d("myLogs", "in createPeerConnectionFactoryForScreenShare "+mediaProjection.toString());
+    currentMediaProjection=mediaProjection;
+    screenShareRecorder= createAppAudioRecorder(mediaProjection,44100);
+    AudioDeviceModule deviceModuleForScreenShare=createJavaAudioDeviceScreenShare(screenShareRecorder);
+    initPcFactory(deviceModuleForScreenShare);
+    getUserMediaImpl.createScreenStream();
+  }
 
     @NonNull
     @Override
@@ -731,14 +1025,17 @@ public class VdotokStreamingModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getDisplayMedia(Promise promise) {
-        ThreadUtils.runOnExecutor(() -> getUserMediaImpl.getDisplayMedia(promise));
+    public void getDisplayMedia(ReadableMap constraints ,Promise promise) {
+      Log.d("jamm", "in get display media");
+        ThreadUtils.runOnExecutor(() -> getUserMediaImpl.getDisplayMedia( constraints,promise));
     }
 
     @ReactMethod
     public void getUserMedia(ReadableMap constraints,
                              Callback    successCallback,
-                             Callback    errorCallback) {
+                             Callback    errorCallback) throws Throwable {
+      AudioDeviceModule deviceModuleForVideoCall=createJavaAudioDevice();
+      initPcFactory(deviceModuleForVideoCall);
         ThreadUtils.runOnExecutor(() ->
             getUserMediaImpl.getUserMedia(constraints, successCallback, errorCallback));
     }
