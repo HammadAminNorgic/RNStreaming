@@ -11,9 +11,10 @@ target 'VdotokStreamingExample' do
   pod 'CNIOLinux',:modular_headers => true
   pod 'CNIODarwin',:modular_headers => true
   pod 'CNIOAtomics',:modular_headers => true
+  pod 'CNIOWindows', :modular_headers => true
   # # pod 'CNIOSHA1',:modular_headers => true
   # pod 'CNIOHTTPParser', :modular_headers => true
-  pod 'CNIOWindows', :modular_headers => true
+
   # pod 'CNIOBoringSSL',:modular_headers => true
   # pod 'CNIOBoringSSLShims',:modular_headers => true
   # Flags change depending on the env values.
