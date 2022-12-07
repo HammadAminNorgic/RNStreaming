@@ -132,7 +132,7 @@ export class Client extends EventEmitter {
           this.emit("local_stream", { type: "GOT_LOCAL_STREAM", message: "this is your local stream", stream: stream });
         //  pc = new RTCPeerConnection(configuration);
          //@ts-ignore
-        pc=new RTCPeerConnection(configuration)
+        pc=new RTCPeerConnection()
         // pc.setConfiguration(configuration)
          this.peer_connection=pc
           this.log('adding stream in pc-->',pc);
@@ -498,7 +498,7 @@ export class Client extends EventEmitter {
         const configuration = { "iceServers": [{ "url": "stun:stun.l.google.com:19302" }] };
         //@ts-ignore
         // configuration
-        const pc = new RTCPeerConnection(configuration);
+        const pc = new RTCPeerConnection();
         // pc.setConfiguration(configuration)
 
         this.peer_connection = pc
