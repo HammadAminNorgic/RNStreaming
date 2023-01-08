@@ -821,6 +821,7 @@ import RTCSessionDescription from './RTCSessionDescription';
 import RTCView from './RTCView';
 import ScreenCapturePickerView from './ScreenCapturePickerView';
 import EventEmitter from 'events';
+import NetInfo from "@react-native-community/netinfo";
 export class Client extends EventEmitter {
     public ws: any;
     public project_id: any;
@@ -836,6 +837,17 @@ export class Client extends EventEmitter {
     public stream_paused:any=false;
     public speakerOn:any=false;
     public callType:any=null;
+    public unsubscribe:any=null;
+    public sdk_credentials:any=null;
+    public socketConnection:any='init';
+    public count:any=0;
+    public role:any=null;
+    public status:any=null;
+    public inCall:any=false;
+    public callParamsData:any=null;
+    public pingInterval:any=null;
+
+
     public sessionConstraints:any = {
       mandatory: {
         OfferToReceiveAudio: true,
@@ -852,6 +864,7 @@ export class Client extends EventEmitter {
 //           let pc= new RTCPeerConnection(configuration)
 // console.log('i am here brothers',pc)
 //           return;
+this.sdk_credentials=_Credentials
           this.project_id = _Credentials.projectId
           this.Connect(_Credentials.host);
         //   notifee.onForegroundEvent(async ({ type, detail }) => {
@@ -890,7 +903,11 @@ export class Client extends EventEmitter {
      * ping
      */
     public sendPing() {
-      this.log('sending ping req:')
+      
+      if(this.socketConnection!=='connected'){
+          return
+      }
+      this.log('sending ping req:',this.mc_token)
       let p= {
       "requestID":new Date().getTime().toString(),
       "requestType":"ping",
@@ -906,7 +923,9 @@ export class Client extends EventEmitter {
     /**
      * AcceptCall
      */
-    public AcceptCall() {
+    public AcceptCall(reinvite=false) {
+      this.role='receiver'
+        this.inCall=true
       let uUID=new Date().getTime().toString();
       const configuration = {"iceServers": [{"url": "stun:stun.l.google.com:19302"}]};
       let pc :any;
@@ -955,28 +974,41 @@ export class Client extends EventEmitter {
               // Send pc.localDescription to peer
               let response ={
                   "type":"request",
-                  "requestType":"session_invite",
+                  "requestType":reinvite?"re_invite":"session_invite",
                   "sdpOffer":description.sdp,
                   "requestID":uUID,
                   "sessionUUID":this.session_uuid,
                   "responseCode":200,
-                  "responseMessage":"accepted"
+                  "responseMessage":"accepted",
+                  "mcToken":this.mc_token
               };
+
+              if(reinvite){
+                response['referenceID']=this.ref_id
+                delete response['responseCode']
+                delete response['responseMessage']
+
+
+              }
                 let reqMessage=JSON.stringify(response);
                 this.log("===OnOffering Answer",reqMessage);
-        this.ws.send(reqMessage);
+              this.ws.send(reqMessage);
             });
           });
           // @ts-ignore:next-line
           pc.onicecandidate = (event)=> {
-            this.log('on ie candidate-->',event);
+            this.log('on ie candidate-->',event.candidate);
+            if(event.candidate==null){
+              return
+            }
             var message = {
                 id : 'onIceCandidate',
                 requestType : 'onIceCandidate',
                 type:"request",
                 candidate : {
-                    candidate:(event as any).candidate
+                    candidate:(event as any).candidate.candidate
                 },
+                // candidate : (event as any).candidate,
                 referenceID:this.call_from,//(offerSDP user ICE Candidate)
                 sessionUUID : this.session_uuid
             };
@@ -987,7 +1019,7 @@ export class Client extends EventEmitter {
           };
           // @ts-ignore:next-line
           pc.ontrack=(event)=>
-  {
+      {
       console.log("p2 track",event)
       console.log("p2 track :D ->",(event.streams))
       if(event.receiver._track.kind=='video'){
@@ -1197,6 +1229,11 @@ export class Client extends EventEmitter {
       this.local_stream=null
       this.remote_stream=null
       this.callType=null
+      this.role=null
+      this.status=null
+      this.inCall=false
+      this.role=null
+      this.session_uuid=null
       }
     // await notifee.stopForegroundService()
   }
@@ -1205,7 +1242,11 @@ export class Client extends EventEmitter {
      */
     public async OneToOneCall(params: any) {
       this.log('one to one call params', params)
+
         let stream: any = null
+        this.role='caller'
+        this.inCall=true
+        this.callParamsData=params
           stream =await this.GetStream(params)
         this.log('this is what i got',stream)
         if(!stream){
@@ -1226,7 +1267,7 @@ export class Client extends EventEmitter {
         // let  yomo = new MediaStream([stream._tracks[0], str2._tracks[0]]);
         // console.error('third stream-->',yomo)
         // setStream(stream)
-        let uUID = new Date().getTime().toString();
+        let uUID =this.session_uuid?this.session_uuid:new Date().getTime().toString();
         this.session_uuid = uUID
         const configuration = { "iceServers": [{ "url": "stun:stun.l.google.com:19302" }] };
         //@ts-ignore
@@ -1268,7 +1309,7 @@ export class Client extends EventEmitter {
               from: this.ref_id,
               to: params.to,
               type: "request",
-              requestType: "session_invite",
+              requestType:params.reinvite?"re_invite": "session_invite",
               session_type: "call",
               call_type: "one_to_one",
               media_type:params.type=="audio"?"audio":"video",
@@ -1278,13 +1319,24 @@ export class Client extends EventEmitter {
               sdpOffer: description.sdp,
               data: {}
             }
+            // if(params.reinite){
+            //   data['']
+            // }
+            if(params.reinvite){
+              delete data.from;
+              delete data.to
+              data['referenceID']=this.ref_id
+            }
             let reqMessage = JSON.stringify(data);
             this.log("sending call request now", reqMessage);
             this.ws.send(reqMessage);
           });
         });
         pc.onicecandidate = (event) => {
-          this.log('on ie candidate-->', event);
+          this.log('on ie candidate-->', event.candidate);
+          if(event.candidate==null){
+            return
+          }
           //   var message = {
           //     id : 'onIceCandidate',
           //     requestType : 'onIceCandidate',
@@ -1299,8 +1351,10 @@ export class Client extends EventEmitter {
             requestType: 'onIceCandidate',
             type: "request",
             candidate: {
-              candidate: (event as any).candidate
+              candidate: (event as any).candidate.candidate
             },
+            // candidate: (event as any).candidate,
+            
             referenceID: this.ref_id,//(offerSDP user ICE Candidate)
             sessionUUID: this.session_uuid
           };
@@ -1354,6 +1408,17 @@ export class Client extends EventEmitter {
       // }
       this.endForegroundService()
     }
+
+    /**
+     * disconnectSocket
+     */
+   public disconnectSocket() {
+   if(this.ws){
+    this.ws.close();
+    // this.socketConnection='disconnected'
+   }
+     
+    }
     /**
      * Register
      */
@@ -1398,6 +1463,18 @@ export class Client extends EventEmitter {
         this.peer_connection.addIceCandidate(messageData.candidate)
       }
     }
+    /**
+     * tryReconnect
+     */
+    public tryReconnect() {
+      this.log('**trying to reconnect socket***')
+      this.socketConnection='reconnecting'
+      this.emit("error", { type: "TRYING_SOCKET_RECONNECT", message: "Socket is disconnected ! trying to connect again" });
+if(this.sdk_credentials && this.sdk_credentials.host){
+  this.Connect(this.sdk_credentials.host)
+}
+     
+    }
     public Connect(mediaServer: any) {
       this.log('in sdk connect->', mediaServer)
       if (!mediaServer.includes('wss://')) {
@@ -1407,15 +1484,84 @@ export class Client extends EventEmitter {
         websocketConn.onclose = (res: any) => {
           this.log("OnClose socket sdk==",res);
           this.emit("error", { type: "SOCKET_CLOSED", message: res.message ? res.message : "socket connection closed " });
+          this.socketConnection="disconnected"
+          if(this.pingInterval){
+            clearInterval(this.pingInterval)
+          }
+          NetInfo.fetch().then(state => {
+            NetInfo.fetch().then(statee => {
+              this.log("connection status on socket close scene-->",state.isConnected,state.isInternetReachable,"=====",statee.isConnected,statee.isInternetReachable);
+              if(statee.isInternetReachable){
+                //  this.socketConnection='re'
+                if(this.socketConnection=='reconnecting'){
+                  return
+                }
+                 this.tryReconnect()
+              }
+              // console.log("Connection type", state.type);
+              // console.log("Is connected?", state.isConnected);
+            });
+          });
+          // this.tryReconnect()
         };
         websocketConn.onopen = () => {
+          this.socketConnection='connected'
+
+          if(this.unsubscribe){
+            this.unsubscribe()
+          }
+          this.unsubscribe= NetInfo.addEventListener(state => {
+            // this.log('connectivity listener',state)
+             if(this.socketConnection=='init'){
+              return
+            }
+            if(this.socketConnection=='reconnecting'){
+              return
+            }
+            if(this.socketConnection=='disconnected' && state.isConnected==true){
+            NetInfo.fetch().then(state => {
+              // console.log("Connection type", state.type);
+              // console.log("Is connected?", state.isConnected);
+              NetInfo.fetch().then(statee => {
+                this.log("connection status-->",state.isConnected,state.isInternetReachable,"=====",statee.isConnected,statee.isInternetReachable);
+                if(statee.isInternetReachable){
+                  //  this.socketConnection='re'
+                  if(this.socketConnection=='reconnecting'){
+                    return
+                  }
+                   this.tryReconnect()
+                }
+                // console.log("Connection type", state.type);
+                // console.log("Is connected?", state.isConnected);
+              });
+            });
+          }
+            // if(this.socketConnection=='init'){
+            //   return
+            // }
+            // if(this.socketConnection=='reconnecting'){
+            //   return
+            // }
+            // if(this.socketConnection=='disconnected' && state.isConnected==true){
+            //   // this.socketConnection=='reconnecting'
+            //   this.log('here i have to reconect the socket',state.isConnected)
+            //   // this.log("Connection type", state.type);
+            //   this.tryReconnect()
+            //   this.log("Is connected?", state.isConnected);
+            //   this.log(this.count)
+            //   this.count=this.count+1
+            // }
+
+        
+
+          });
           this.ws = websocketConn
           this.log("OnOpen socket==");
           this.emit("connected", { type: "CONNECTION_ESTABLISHED", message: "You are connected successfully with VDOTOK server ! please register yourself now !" });
         };
         websocketConn.onerror = (res: any) => {
           this.log("OnError socket==",res);
-          this.emit("error", { type: "SOCKET_CLOSED", message: res.message ? res.message : "socket connection closed " });
+          // this.emit("error", { type: "SOCKET_CLOSED", message: res.message ? res.message : "socket connection closed " });
         };
         websocketConn.onmessage = (message) => {
           var messageData = JSON.parse(message.data);
@@ -1431,7 +1577,17 @@ export class Client extends EventEmitter {
                 this.mc_token = messageData.mcToken
                 this.log('You are registered successfully with vidtok server.', messageData)
                 this.emit("registered", { type: "REGISTER_RESPONSE", message: "You are successfully registered with VDOTOK server." });
-                setInterval(() => {
+                if(this.inCall==true){
+                  if(this.role && this.role=='caller'){
+                    this.log('reinvite on caller side',this.callParamsData)
+                 this.OneToOneCall({...this.callParamsData,reinvite:1})
+                  }else{
+                       this.log('reinvite on receiver side-->')
+                       this.AcceptCall(true)
+                  }
+
+                }
+              this.pingInterval= setInterval(() => {
                   this.sendPing();
                 }, 3000);
               } else {

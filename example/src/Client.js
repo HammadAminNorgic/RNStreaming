@@ -1,12 +1,12 @@
 // @ts-nocheck
 // @ts-nocheck
-import React, { useState,useEffect,useRef } from 'react'
-import { Text, TouchableOpacity, View,Image } from 'react-native'
+import React, { useState, useEffect, useRef } from 'react'
+import { Text, TouchableOpacity, View, Image } from 'react-native'
 import { Client, RTCView } from 'react-native-vdotok-streaming'
 import notifee, { AndroidImportance } from '@notifee/react-native';
 
 const ClientApp = () => {
-  let project_id = '6NE92I'
+  let project_id = '115G1WZI'
 
   const [sdk, setSdk] = useState(null)
   const [role, setRole] = useState(null)
@@ -14,11 +14,13 @@ const ClientApp = () => {
 
   const [connected, setConnect] = useState(false)
   const [registered, setRegistered] = useState(false)
+  const [sdkConnected, setSdkConnected] = useState(false)
+
   const [callInProgress, setCallInprogress] = useState(false)
 
   const [calling, setCalling] = useState(false)
   const [callReceived, setCallReceived] = useState(false)
-  const [err, setErr] = useState('')            
+  const [err, setErr] = useState('')
   const [pausedVideo, setPausedVideo] = useState(false)
   const [pausedAudio, setPauseAudio] = useState(false)
   const [callTime, setCallTime] = useState(0)
@@ -28,18 +30,18 @@ const ClientApp = () => {
   const [remoteStream, setRemoteStream] = useState(false)
 
 
-  
+
   const [userData, setUserData] = useState({
 
-    "auth_token": "90924fdc9c96f776d15f26bac53a7199",
+    "auth_token": "fa5ebf8d63718ef5071aabf8b28aa612",
 
-    "authorization_token": "046705461b6f1b7a52b434f2a9d59aa1",
+    "authorization_token": "92862cc73e777b52dbd196018d432b97",
 
-    "created_datetime": "1660226058",
+    "created_datetime": "1672917462",
 
-    "email": "Hammad1_Caller@gmail.com",
+    "email": "hammadjani@gmail.com",
 
-    "full_name": "Hammad1_Caller",
+    "full_name": "hammadjani",
 
     "media_server_map": {
 
@@ -59,9 +61,9 @@ const ClientApp = () => {
 
     "messaging_server_map": {
 
-        "complete_address": "wss://q-messaging2.vdotok.dev:443",
+        "complete_address": "wss://q-messaging.vdotok.dev:443",
 
-        "host": "q-messaging2.vdotok.dev",
+        "host": "q-messaging.vdotok.dev",
 
         "port": "443",
 
@@ -69,32 +71,42 @@ const ClientApp = () => {
 
     },
 
-    "phone_num": "923865192724",
+    "phone_num": "923278884407",
 
-    "process_time": 108,
+    "process_time": 360,
 
     "profile_pic": "",
 
-    "ref_id": "fe6e77e01044c54861483098cd8d795a",
+    "ref_id": "e3ef4e9e7d4ab1806dbb49d5a07a55a8",
 
     "status": 200,
 
-    "user_id": 1020,
+    "stun_server_map": {
 
-    "username": "Hammad1_Caller"
+        "complete_address": "r-stun2.vdotok.dev:3478",
+
+        "host": "r-stun2.vdotok.dev",
+
+        "port": "3478"
+
+    },
+
+    "user_id": 5236,
+
+    "username": "hammadjani"
 
 });
   const [user2Data, setUser2Data] = useState({
 
-    "auth_token": "14d662cdf7a159d3ea0bf318b4eafbcb",
+    "auth_token": "2e54baf19dbe98da7886632655105105",
 
-    "authorization_token": "19f3d41aa0968a9d92cbf6e923fee98f",
+    "authorization_token": "396142328d6d672b547e7f8227c7f6f1",
 
-    "created_datetime": "1660226084",
+    "created_datetime": "1672917493",
 
-    "email": "Hammad1_Callee@gmail.com",
+    "email": "hammadpoop@gmail.com",
 
-    "full_name": "Hammad1_Callee",
+    "full_name": "hammadpoop",
 
     "media_server_map": {
 
@@ -114,9 +126,9 @@ const ClientApp = () => {
 
     "messaging_server_map": {
 
-        "complete_address": "wss://q-messaging2.vdotok.dev:443",
+        "complete_address": "wss://q-messaging.vdotok.dev:443",
 
-        "host": "q-messaging2.vdotok.dev",
+        "host": "q-messaging.vdotok.dev",
 
         "port": "443",
 
@@ -124,81 +136,91 @@ const ClientApp = () => {
 
     },
 
-    "phone_num": "923080243863",
+    "phone_num": "923129654600",
 
-    "process_time": 272,
+    "process_time": 129,
 
     "profile_pic": "",
 
-    "ref_id": "0f348b66a7b87ab542a9277d2783c825",
+    "ref_id": "d52b8b652fb5fe8277a74c7389e802ee",
 
     "status": 200,
 
-    "user_id": 1021,
+    "stun_server_map": {
 
-    "username": "Hammad1_Callee"
+        "complete_address": "r-stun2.vdotok.dev:3478",
+
+        "host": "r-stun2.vdotok.dev",
+
+        "port": "3478"
+
+    },
+
+    "user_id": 5237,
+
+    "username": "hammadpoop"
 
 })
 
 
-const timerRef = useRef(null);
-let currentTimeRef = useRef(callTime);
+  const timerRef = useRef(null);
+  let currentTimeRef = useRef(callTime);
 
-const endForegroundService=async()=>{
-  // await notifee.stopForegroundService()
-  setPauseAudio(false)
-  setPausedVideo(false)
-setCallReceived(false)
-endTimer()
-try {
-	await notifee.stopForegroundService();
-} catch( err ) {
-	// Handle Error
-};
+  const endForegroundService = async () => {
+    // await notifee.stopForegroundService()
+    setPauseAudio(false)
+    setPausedVideo(false)
+    setCallReceived(false)
+    endTimer()
+    try {
+      await notifee.stopForegroundService();
+    } catch (err) {
+      // Handle Error
+    };
 
-}
-useEffect(()=>{
-  return()=>{
-    // alert('hii')
+  }
+  useEffect(() => {
+    return () => {
+      // alert('hii')
 
-    if(sdk){
-      console.log('i am leaving')
-      sdk.Disconnect()
-      endTimer()
+      if (sdk) {
+        console.log('i am leaving')
+        sdk.Disconnect()
+        endTimer()
+      }
+      // endForegroundService()
+
     }
-    // endForegroundService()
+  }, [])
+  const toHHMMSS = (secs) => {
+    var sec_num = parseInt(secs, 10)
+    var hours = Math.floor(sec_num / 3600)
+    var minutes = Math.floor(sec_num / 60) % 60
+    var seconds = sec_num % 60
 
-  }
-},[])
-const toHHMMSS = (secs) => {
-  var sec_num = parseInt(secs, 10)
-  var hours   = Math.floor(sec_num / 3600)
-  var minutes = Math.floor(sec_num / 60) % 60
-  var seconds = sec_num % 60
-
-  return [hours,minutes,seconds]
+    return [hours, minutes, seconds]
       .map(v => v < 10 ? "0" + v : v)
-      .filter((v,i) => v !== "00" || i > 0)
+      .filter((v, i) => v !== "00" || i > 0)
       .join(":")
-}
-
-const getTime=()=>{
-  setCallTime(x=>x+1)
-  // currentTimeRef.current=callTime
-}
-
-const startTimer=()=>{
-  timerRef.current= setInterval(() => {
-    getTime()
-  }, 1000);
-
-}
-const endTimer=()=>{
-  if(timerRef.current){
-    clearInterval(timerRef.current)
-    setCallTime(0)
   }
-}
+
+  const getTime = () => {
+    setCallTime(x => x + 1)
+    // currentTimeRef.current=callTime
+  }
+
+  const startTimer = () => {
+    timerRef.current = setInterval(() => {
+      getTime()
+    }, 1000);
+
+  }
+  const endTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+      setCallTime(0)
+    }
+  }
   const initSdk = (role) => {
     let auth_token_ = role === 'receiver' ? user2Data.authorization_token : userData.authorization_token;
     let ref_if_ = role === 'receiver' ? user2Data.ref_id : userData.ref_id
@@ -220,12 +242,15 @@ const endTimer=()=>{
     })
     client.on('error', (res) => {
       console.log('sdk error in app: ', res)
-      if(res.type==='NO_STREAM_GOT'){
+      if (res.type === 'NO_STREAM_GOT') {
         setLocalStream(null)
         setRemoteStream(null)
         setCallInprogress(false)
-       setCallReceived(false)
-       endForegroundService()
+        setCallReceived(false)
+        endForegroundService()
+      }
+      if (res.type == 'SOCKET_CLOSED') {
+        setConnect(false)
       }
       setErr(res.message)
     })
@@ -241,30 +266,29 @@ const endTimer=()=>{
         client.Spkr()
       }, 1000);
     })
-    client.on('stop_session',(res)=>{
-      console.log('stop session event from notification called-->',res)
+    client.on('stop_session', (res) => {
+      console.log('stop session event from notification called-->', res)
       client.DeclineCall()
-      if(localStream)
-{
-  // localStream.release()
-}      
+      if (localStream) {
+        // localStream.release()
+      }
       setLocalStream(null)
       setRemoteStream(null)
       setCallInprogress(false)
-     setCallReceived(false)
-     endForegroundService()
+      setCallReceived(false)
+      endForegroundService()
     })
-    client.on('stream_state_info',(res)=>{
+    client.on('stream_state_info', (res) => {
       console.log('stream state changed:', res)
 
     })
-    client.on('audio_state_info',(res)=>{
+    client.on('audio_state_info', (res) => {
       console.log('audio state changed:', res)
 
     })
 
     client.on('call', (res) => {
-      console.log('on call in app-->',res)
+      console.log('on call in app-->', res)
       if (res.type === "CALL_RECEIVED") {
         setCallReceived(true)
         console.log('call received in app -->', res)
@@ -273,26 +297,25 @@ const endTimer=()=>{
         // }, 2000);
       }
       if (res.type === 'CALL_ENDED') {
-        if(localStream)
-        {
+        if (localStream) {
           // localStream.release()
-        }  
+        }
         setLocalStream(null)
         setRemoteStream(null)
         setCallInprogress(false)
         endForegroundService()
       }
     })
-  //   stream.getVideoTracks().forEach((track) => {
-  //     console.log('sc',track);
-  //     cameraState ? track.enabled = false : track.enabled = true
-  // })
-  // }
+    //   stream.getVideoTracks().forEach((track) => {
+    //     console.log('sc',track);
+    //     cameraState ? track.enabled = false : track.enabled = true
+    // })
+    // }
 
     console.log("client in app", client)
     setSdk(client)
   }
-  const ToggleVideoOn=()=>{
+  const ToggleVideoOn = () => {
     // if(localStream){
     //   localStream.getVideoTracks().forEach((track) => {
     //     console.log('sc',track);
@@ -300,120 +323,119 @@ const endTimer=()=>{
     // }) 
     // }
     sdk.ResumeStream()
-  
+
 
   }
-  const ToggleVideoOff=()=>{
+  const ToggleVideoOff = () => {
     // if(localStream){
     //   localStream.getVideoTracks().forEach((track) => {
     //     console.log('sc',track);
     //   track.enabled =false
     // }) 
     // }
-  sdk.PauseStream()
+    sdk.PauseStream()
 
   }
-  const ToggleAudioOn=()=>{
+  const ToggleAudioOn = () => {
     sdk.UnmuteMic()
   }
-  const ToggleAudioOff=()=>{
+  const ToggleAudioOff = () => {
     // if(localStream){
     //   localStream.getAudioTracks().forEach((track) => {
     //     console.log('sc',track);
     //   track.enabled =false
     // }) 
     // }
-  
-sdk.MuteMic()
+
+    sdk.MuteMic()
   }
 
 
-  const switchCamera=()=>{
-  //   localStream.getVideoTracks().forEach((track) => {
-  //     console.log('sc',track);
-  //     track._switchCamera();
-  // })
-  sdk.SwitchCamera();
+  const switchCamera = () => {
+    //   localStream.getVideoTracks().forEach((track) => {
+    //     console.log('sc',track);
+    //     track._switchCamera();
+    // })
+    sdk.SwitchCamera();
   }
   const makeCall = async (type = 'video') => {
     if (sdk) {
-        if(type !== 'video'){
-            try {
-                const channelId = await notifee.createChannel( {
-                    id: 'screen_capture',
-                    name: 'Screen Capture',
-                    lights: false,
-                    vibration: false,
-                    importance: AndroidImportance.DEFAULT
-                } );
-            
-                await notifee.displayNotification( {
-                    title: 'Screen Capture',
-                    body: 'This notification will be here until you stop capturing.',
-                    android: {
-                        channelId,
-                        asForegroundService: true
-                    }
-                } );
-                // setTimeout(() => {
-                      sdk.OneToOneCall({
-                    to: [user2Data.ref_id],
-                    type: type === 'video' ? 'camera' : 'screen'
-                  })
-                  setCallInprogress(true)
+      if (type !== 'video') {
+        try {
+          const channelId = await notifee.createChannel({
+            id: 'screen_capture',
+            name: 'Screen Capture',
+            lights: false,
+            vibration: false,
+            importance: AndroidImportance.DEFAULT
+          });
 
-                // }, 2000);
-            
-            } catch( err ) {
-                // Handle Error
-            };
-        }else{
-          console.log("sdk",sdk)
-            sdk.OneToOneCall({
-                to: [user2Data.ref_id],
-                type: type === 'video' ? 'camera' : 'screen'
-              })
-              setCallInprogress(true)
-        }
-   
+          await notifee.displayNotification({
+            title: 'Screen Capture',
+            body: 'This notification will be here until you stop capturing.',
+            android: {
+              channelId,
+              asForegroundService: true
+            }
+          });
+          // setTimeout(() => {
+          sdk.OneToOneCall({
+            to: [user2Data.ref_id],
+            type: type === 'video' ? 'camera' : 'screen'
+          })
+          setCallInprogress(true)
+
+          // }, 2000);
+
+        } catch (err) {
+          // Handle Error
+        };
+      } else {
+        console.log("sdk", sdk)
+        sdk.OneToOneCall({
+          to: [user2Data.ref_id],
+          type: type === 'video' ? 'camera' : 'screen'
+        })
+        setCallInprogress(true)
+      }
+
     } else {
       alert('sdk not conected')
     }
   }
   const endCall = async () => {
-    if(localStream)
-    {
+    if (localStream) {
       // localStream.release()
-    }  
+    }
     sdk.DeclineCall();
- 
+
     setLocalStream(null)
     setRemoteStream(null)
     setCallInprogress(false)
-   setCallReceived(false)
-   endForegroundService()
+    setCallReceived(false)
+    endForegroundService()
 
   }
-  const acceptCall=()=>{
-    if(!sdk){
+  const acceptCall = () => {
+    if (!sdk) {
       alert('sdk not connected')
-    return;
+      return;
     }
     sdk.AcceptCall();
-   setCallReceived(false)
-   setCallInprogress(true)
+    setCallReceived(false)
+    setCallInprogress(true)
 
 
 
   }
-  const declineCall=()=>{
-    if(!sdk){
+  const declineCall = () => {
+    if (!sdk) {
       alert('sdk not connected')
-    return;
+      return;
     }
     sdk.DeclineCall();
     setCallInprogress(false)
-   setCallReceived(false)
+    setCallReceived(false)
 
   }
 
@@ -426,7 +448,7 @@ sdk.MuteMic()
       justifyContent: 'center',
 
     }}>
-       {/* {localStream && <View style={{position:'absolute',zIndex:5,top:10,right:30,backgroundColor:'rgba(0,0,0,0.5)',padding:10,display:'flex',borderRadius:5,alignItems:"center",justifyContent:'center'}}>
+      {/* {localStream && <View style={{position:'absolute',zIndex:5,top:10,right:30,backgroundColor:'rgba(0,0,0,0.5)',padding:10,display:'flex',borderRadius:5,alignItems:"center",justifyContent:'center'}}>
                <Text style={{color:'yellow',fontWeight:'bold',fontSize:18,letterSpacing:2,}}>{toHHMMSS(callTime)}</Text>
                 </View>} */}
       {!role ? (<View style={{ display: 'flex', flex: 1, flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: 'black' }}>
@@ -458,9 +480,9 @@ sdk.MuteMic()
           // paddingVertical: 50,
           // paddingHorizontal: 10
         }}>
-             {localStream && <View style={{zIndex:5,backgroundColor:'rgba(0,0,0,0.5)',padding:10,alignItems:"center",justifyContent:'center'}}>
-               <Text style={{color:'yellow',fontWeight:'bold',fontSize:18,letterSpacing:2,}}>{toHHMMSS(callTime)}</Text>
-                </View>}
+          {localStream && <View style={{ zIndex: 5, backgroundColor: 'rgba(0,0,0,0.5)', padding: 10, alignItems: "center", justifyContent: 'center' }}>
+            <Text style={{ color: 'yellow', fontWeight: 'bold', fontSize: 18, letterSpacing: 2, }}>{toHHMMSS(callTime)}</Text>
+          </View>}
           {
             !connected && (
               <View style={{ display: 'flex', flex: 1, alignItems: "center", justifyContent: 'center' }}>
@@ -475,20 +497,29 @@ sdk.MuteMic()
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              zIndex:2,
-              marginTop:30,
+              zIndex: 2,
+              marginTop: 30,
 
 
             }
           }>
             {
-              connected && (<Text style={{ color: "green", fontWeight: "bold", marginBottom: 10, fontSize: 17 }}>Socket Connected</Text>)
+              connected ? (<Text style={{ color: "green", fontWeight: "bold", marginBottom: 10, fontSize: 17 }}>Socket Connected</Text>) : (<Text style={{ color: "green", fontWeight: "bold", marginBottom: 10, fontSize: 17 }}>Socket Disconnected</Text>)
             }
             {
               registered && (<Text style={{ color: "green", fontWeight: "bold", marginBottom: 10, fontSize: 17 }}>Registered with vdotok</Text>)
             }
+            {
+              <TouchableOpacity onPress={()=>{
+                if(sdk){
+                  sdk.disconnectSocket();
+                }
+              }} style={{padding:15,backgroundColor:'grey'}}>
+                <Text>Disconnect socket</Text>
+              </TouchableOpacity>
+            }
           </View>}
-       
+
 
           {
             (connected && registered) ? (
@@ -520,50 +551,51 @@ sdk.MuteMic()
                       }} style={{ height: 50, backgroundColor: 'black', display: 'flex', width: 200, borderRadius: 10, display: 'flex', alignItems: "center", justifyContent: "center", marginTop: 10 }}>
                         <Text style={{ color: "yellow", fontWeight: 'bold', fontSize: 17 }}>Screen Share Call</Text>
                       </TouchableOpacity>
+
                     </>
                   ) : (
-                    <View style={{display:'flex',flexDirection:"row",zIndex:2,marginBottom:50}}>
-                   { callType !=='screen' && (<>
-                   <TouchableOpacity onPress={() => {
-                     switchCamera()
-                      }} style={{ height: 40,width:40, backgroundColor: '#E0E0E0', display: 'flex',  borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center",marginHorizontal:5 }}>
-                        {/* <Text style={{ color: "white", fontWeight: 'bold', fontSize: 17 }}>Switch Camera</Text> */}
-                    <Image source={require('./assets/icons/switch.png')} style={{height:'80%',width:'80%',resizeMode:"contain"}}/>
-                      
-                    
-                    
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => {
-                        if(pausedVideo){
-                          ToggleVideoOn()
-                        }else{
-                          ToggleVideoOff()
+                    <View style={{ display: 'flex', flexDirection: "row", zIndex: 2, marginBottom: 50 }}>
+                      {callType !== 'screen' && (<>
+                        <TouchableOpacity onPress={() => {
+                          switchCamera()
+                        }} style={{ height: 40, width: 40, backgroundColor: '#E0E0E0', display: 'flex', borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center", marginHorizontal: 5 }}>
+                          {/* <Text style={{ color: "white", fontWeight: 'bold', fontSize: 17 }}>Switch Camera</Text> */}
+                          <Image source={require('./assets/icons/switch.png')} style={{ height: '80%', width: '80%', resizeMode: "contain" }} />
 
-                        }
-                        setPausedVideo(!pausedVideo)
 
-                       
-                      }} style={{ height: 40,width:40, backgroundColor: '#E0E0E0', display: 'flex',  borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center",marginHorizontal:5}}>
-                    <Image source={pausedVideo?require('./assets/icons/camOff.png'):require('./assets/icons/camOn.png')} style={{height:'70%',width:'70%',resizeMode:"contain"}}/>
-                       
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => {
-                        if(pausedAudio){
-                          ToggleAudioOn()
-                        }else{
-                          ToggleAudioOff()
-                        }
-                        setPauseAudio(!pausedAudio)
-                      }} style={{ height: 40,width:40, backgroundColor: '#E0E0E0', display: 'flex',  borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center" ,marginHorizontal:5}}>
-                    <Image source={pausedAudio?require('./assets/icons/micOff.png'):require('./assets/icons/micOn.png')} style={{height:'70%',width:'70%',resizeMode:"contain"}}/>
 
-                      </TouchableOpacity></>)}
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => {
+                          if (pausedVideo) {
+                            ToggleVideoOn()
+                          } else {
+                            ToggleVideoOff()
+
+                          }
+                          setPausedVideo(!pausedVideo)
+
+
+                        }} style={{ height: 40, width: 40, backgroundColor: '#E0E0E0', display: 'flex', borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center", marginHorizontal: 5 }}>
+                          <Image source={pausedVideo ? require('./assets/icons/camOff.png') : require('./assets/icons/camOn.png')} style={{ height: '70%', width: '70%', resizeMode: "contain" }} />
+
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => {
+                          if (pausedAudio) {
+                            ToggleAudioOn()
+                          } else {
+                            ToggleAudioOff()
+                          }
+                          setPauseAudio(!pausedAudio)
+                        }} style={{ height: 40, width: 40, backgroundColor: '#E0E0E0', display: 'flex', borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center", marginHorizontal: 5 }}>
+                          <Image source={pausedAudio ? require('./assets/icons/micOff.png') : require('./assets/icons/micOn.png')} style={{ height: '70%', width: '70%', resizeMode: "contain" }} />
+
+                        </TouchableOpacity></>)}
                       <TouchableOpacity onPress={() => {
                         endCall()
-                      }} style={{ height: 40,width:70, backgroundColor: 'red', display: 'flex',  borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center"}}>
+                      }} style={{ height: 40, width: 70, backgroundColor: 'red', display: 'flex', borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center" }}>
                         <Text style={{ color: "white", fontWeight: 'bold', fontSize: 13 }}>End Call</Text>
                       </TouchableOpacity>
-                   
+
                     </View>
                   )
                 }
@@ -577,20 +609,20 @@ sdk.MuteMic()
 
           {
             (localStream || remoteStream) ? (
-              <View style={{ display: 'flex', height: '100%',position:'absolute',   width: "100%", }}>
-                <View  style={{ height: 150, width: 100,borderColor:'red',zIndex:2,position:'absolute',bottom:140,right:20,borderWidth:1,backgroundColor:'grey'}}>
+              <View style={{ display: 'flex', height: '100%', position: 'absolute', width: "100%", }}>
+                <View style={{ height: 150, width: 100, borderColor: 'red', zIndex: 2, position: 'absolute', bottom: 140, right: 20, borderWidth: 1, backgroundColor: 'grey' }}>
                   {/* <Text style={{ color: 'black' }}>local:</Text> */}
                   {localStream && (
                     <>
 
-                      <RTCView zOrder={2} zIndex={2} streamURL={localStream.toURL()} style={{ height: '100%', width: '100%',zIndex:2  }}></RTCView></>)}
+                      <RTCView zOrder={2} zIndex={2} streamURL={localStream.toURL()} style={{ height: '100%', width: '100%', zIndex: 2 }}></RTCView></>)}
                 </View>
-                <View style={{ height: '100%', width: "100%", zIndex:1,position:'absolute' }}>
+                <View style={{ height: '100%', width: "100%", zIndex: 1, position: 'absolute' }}>
                   {/* <Text style={{ color: "black" }}>remote:</Text> */}
                   {remoteStream && (
                     <>
 
-                      <RTCView zOrder={1} zIndex={1} streamURL={remoteStream.toURL()} style={{ height: '100%', width: '100%', zIndex:1 }}></RTCView></>)}
+                      <RTCView zOrder={1} zIndex={1} streamURL={remoteStream.toURL()} style={{ height: '100%', width: '100%', zIndex: 1 }}></RTCView></>)}
 
                 </View>
 
@@ -610,9 +642,9 @@ sdk.MuteMic()
           // paddingVertical: 50,
           // paddingHorizontal: 10
         }}>
-          {localStream && <View style={{zIndex:5,backgroundColor:'rgba(0,0,0,0.5)',padding:10,alignItems:"center",justifyContent:'center'}}>
-               <Text style={{color:'yellow',fontWeight:'bold',fontSize:18,letterSpacing:2,}}>{toHHMMSS(callTime)}</Text>
-                </View>}
+          {localStream && <View style={{ zIndex: 5, backgroundColor: 'rgba(0,0,0,0.5)', padding: 10, alignItems: "center", justifyContent: 'center' }}>
+            <Text style={{ color: 'yellow', fontWeight: 'bold', fontSize: 18, letterSpacing: 2, }}>{toHHMMSS(callTime)}</Text>
+          </View>}
           {
             !connected && (
               <View style={{ display: 'flex', flex: 1, alignItems: "center", justifyContent: 'center' }}>
@@ -627,8 +659,8 @@ sdk.MuteMic()
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              marginTop:30,
-              zIndex:2
+              marginTop: 30,
+              zIndex: 2
 
 
             }
@@ -697,49 +729,49 @@ sdk.MuteMic()
                     </>
                   ) : (
                     <>
-                          <View style={{display:'flex',flexDirection:"row",zIndex:2,marginBottom:50}}>
-                   { callType !=='screen' && (<><TouchableOpacity onPress={() => {
-                     switchCamera()
-                      }} style={{ height: 40,width:40, backgroundColor: '#E0E0E0', display: 'flex',  borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center",marginHorizontal:5 }}>
-                        {/* <Text style={{ color: "white", fontWeight: 'bold', fontSize: 17 }}>Switch Camera</Text> */}
-                    <Image source={require('./assets/icons/switch.png')} style={{height:'80%',width:'80%',resizeMode:"contain"}}/>
-                      
-                    
-                    
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => {
-                        if(pausedVideo){
-                          ToggleVideoOn()
-                        }else{
-                          ToggleVideoOff()
-                        }
-                        setPausedVideo(!pausedVideo)
+                      <View style={{ display: 'flex', flexDirection: "row", zIndex: 2, marginBottom: 50 }}>
+                        {callType !== 'screen' && (<><TouchableOpacity onPress={() => {
+                          switchCamera()
+                        }} style={{ height: 40, width: 40, backgroundColor: '#E0E0E0', display: 'flex', borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center", marginHorizontal: 5 }}>
+                          {/* <Text style={{ color: "white", fontWeight: 'bold', fontSize: 17 }}>Switch Camera</Text> */}
+                          <Image source={require('./assets/icons/switch.png')} style={{ height: '80%', width: '80%', resizeMode: "contain" }} />
 
-                       
-                      }} style={{ height: 40,width:40, backgroundColor: '#E0E0E0', display: 'flex',  borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center",marginHorizontal:5}}>
-                    <Image source={pausedVideo?require('./assets/icons/camOff.png'):require('./assets/icons/camOn.png')} style={{height:'70%',width:'70%',resizeMode:"contain"}}/>
-                       
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => {
-                        if(pausedAudio){
-                          ToggleAudioOn()
-                        }else{
-                          ToggleAudioOff()
-                        }
-                        setPauseAudio(!pausedAudio)
-                      }} style={{ height: 40,width:40, backgroundColor: '#E0E0E0', display: 'flex',  borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center" ,marginHorizontal:5}}>
-                    <Image source={pausedAudio?require('./assets/icons/micOff.png'):require('./assets/icons/micOn.png')} style={{height:'70%',width:'70%',resizeMode:"contain"}}/>
 
-                      </TouchableOpacity></>)}
-                      <TouchableOpacity onPress={() => {
-                        endCall()
-                      }} style={{ height: 40,width:70, backgroundColor: 'red', display: 'flex',  borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center"}}>
-                        <Text style={{ color: "white", fontWeight: 'bold', fontSize: 13 }}>End Call</Text>
-                      </TouchableOpacity>
-                   
-                    </View>
-                   
-                      
+
+                        </TouchableOpacity>
+                          <TouchableOpacity onPress={() => {
+                            if (pausedVideo) {
+                              ToggleVideoOn()
+                            } else {
+                              ToggleVideoOff()
+                            }
+                            setPausedVideo(!pausedVideo)
+
+
+                          }} style={{ height: 40, width: 40, backgroundColor: '#E0E0E0', display: 'flex', borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center", marginHorizontal: 5 }}>
+                            <Image source={pausedVideo ? require('./assets/icons/camOff.png') : require('./assets/icons/camOn.png')} style={{ height: '70%', width: '70%', resizeMode: "contain" }} />
+
+                          </TouchableOpacity>
+                          <TouchableOpacity onPress={() => {
+                            if (pausedAudio) {
+                              ToggleAudioOn()
+                            } else {
+                              ToggleAudioOff()
+                            }
+                            setPauseAudio(!pausedAudio)
+                          }} style={{ height: 40, width: 40, backgroundColor: '#E0E0E0', display: 'flex', borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center", marginHorizontal: 5 }}>
+                            <Image source={pausedAudio ? require('./assets/icons/micOff.png') : require('./assets/icons/micOn.png')} style={{ height: '70%', width: '70%', resizeMode: "contain" }} />
+
+                          </TouchableOpacity></>)}
+                        <TouchableOpacity onPress={() => {
+                          endCall()
+                        }} style={{ height: 40, width: 70, backgroundColor: 'red', display: 'flex', borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center" }}>
+                          <Text style={{ color: "white", fontWeight: 'bold', fontSize: 13 }}>End Call</Text>
+                        </TouchableOpacity>
+
+                      </View>
+
+
 
                     </>
                   )
@@ -751,23 +783,23 @@ sdk.MuteMic()
 
 
           }
-   {
+          {
             (localStream || remoteStream) ? (
-              <View style={{ display: 'flex', height: '100%',position:'absolute',   width: "100%", }}>
-                <View  style={{ height: 150, width: 100,borderColor:'red',zIndex:2,position:'absolute',bottom:140,right:20,borderWidth:1,backgroundColor:"grey"}}>
+              <View style={{ display: 'flex', height: '100%', position: 'absolute', width: "100%", }}>
+                <View style={{ height: 150, width: 100, borderColor: 'red', zIndex: 2, position: 'absolute', bottom: 140, right: 20, borderWidth: 1, backgroundColor: "grey" }}>
                   {/* <Text style={{ color: 'black' }}>local:</Text> */}
                   {localStream && (
                     <>
 
-                      <RTCView zOrder={2} zIndex={2} streamURL={localStream.toURL()} style={{ height: '100%', width: '100%',zIndex:2  }}></RTCView></>)}
+                      <RTCView zOrder={2} zIndex={2} streamURL={localStream.toURL()} style={{ height: '100%', width: '100%', zIndex: 2 }}></RTCView></>)}
                 </View>
-                <View style={{ height: '100%', width: "100%", zIndex:1,position:'absolute' }}>
-                 
+                <View style={{ height: '100%', width: "100%", zIndex: 1, position: 'absolute' }}>
+
                   {/* <Text style={{ color: "black" }}>remote:</Text> */}
                   {remoteStream && (
                     <>
 
-                      <RTCView zOrder={1} zIndex={1} streamURL={remoteStream.toURL()} style={{ height: '100%', width: '100%',zIndex:1 }}></RTCView></>)}
+                      <RTCView zOrder={1} zIndex={1} streamURL={remoteStream.toURL()} style={{ height: '100%', width: '100%', zIndex: 1 }}></RTCView></>)}
 
                 </View>
 

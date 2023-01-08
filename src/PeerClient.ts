@@ -1404,7 +1404,7 @@ export class PeerClient extends EventEmitter {
             });
             // @ts-ignore:next-line
             pc.onicecandidate = (event)=> {
-              this.log('on receiver ice_candidate-->',event);
+              this.log('on receiver ice_candidate-->',event.candidate);
               // {
               //     "requestType": "onIceCandidate",
               //     "candidate": {
@@ -1420,6 +1420,9 @@ export class PeerClient extends EventEmitter {
               //     ]
               // }
               // return
+              if(event.candidate==null){
+                return
+              }
               var message = {
                   id : 'onIceCandidate',
                   requestType : 'onIceCandidate',
@@ -1855,7 +1858,7 @@ pc.setLocalDescription(description).then(() => {
   console.log(err);
 });
 pc.onicecandidate = (event) => {
-this.log('on ie candidate-->', event);
+this.log('on ie candidate-->', event.candidate);
 this.localCandidatesArray.push((event as any).candidate)
 //   var message = {
 //     id : 'onIceCandidate',
