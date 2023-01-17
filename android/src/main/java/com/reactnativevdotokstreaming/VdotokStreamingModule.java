@@ -1,5 +1,7 @@
 package com.reactnativevdotokstreaming;
 
+import static androidx.core.content.ContextCompat.getSystemService;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -41,11 +43,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import android.content.Context;
+import android.media.AudioManager;
+import org.webrtc.AudioTrack;
 
 import org.jetbrains.annotations.NotNull;
 import org.webrtc.*;
 import org.webrtc.audio.AudioDeviceModule;
 import org.webrtc.audio.JavaAudioDeviceModule;
+
 
 import kotlin.jvm.internal.Intrinsics;
 
@@ -68,7 +74,8 @@ public class VdotokStreamingModule extends ReactContextBaseJavaModule {
   private AudioRecord AppAudioRecorder;
   public AudioRecord screenShareRecorder;
   public MediaProjection currentMediaProjection;
-
+  private AudioManager audioManager;
+  private Context AppContext;
     public static class Options {
         private VideoEncoderFactory videoEncoderFactory = null;
         private VideoDecoderFactory videoDecoderFactory = null;
@@ -107,6 +114,7 @@ public class VdotokStreamingModule extends ReactContextBaseJavaModule {
         super(reactContext);
       appContext=reactContext;
       getUserMediaImpl = new GetUserMediaImpl(this, reactContext);
+      audioManager = (AudioManager) appContext.getSystemService(Context.AUDIO_SERVICE);
       mPeerConnectionObservers = new SparseArray<>();
       localStreams = new HashMap<>();
 //        AudioDeviceModule adm = null;
@@ -1035,11 +1043,26 @@ public class VdotokStreamingModule extends ReactContextBaseJavaModule {
                              Callback    successCallback,
                              Callback    errorCallback) throws Throwable {
       AudioDeviceModule deviceModuleForVideoCall=createJavaAudioDevice();
+
+
+
       initPcFactory(deviceModuleForVideoCall);
+
         ThreadUtils.runOnExecutor(() ->
             getUserMediaImpl.getUserMedia(constraints, successCallback, errorCallback));
     }
 
+    @ReactMethod
+    public  void SetSpeakerOn(){
+      audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+      audioManager.setSpeakerphoneOn(true);
+    }
+
+  @ReactMethod
+  public  void SetSpeakerOff(){
+    audioManager.setMode(AudioManager.MODE_NORMAL);
+    audioManager.setSpeakerphoneOn(false);
+  }
     @ReactMethod
     public void enumerateDevices(Callback callback) {
         ThreadUtils.runOnExecutor(() ->

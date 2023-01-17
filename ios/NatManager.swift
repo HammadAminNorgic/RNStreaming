@@ -1,5 +1,6 @@
 // CalendarManager.swift
 import Foundation
+import AVFoundation 
 @objc(NatManager)
 class NatManager: NSObject {
     
@@ -127,7 +128,47 @@ class NatManager: NSObject {
     resolve(stunport)
    // Date is ready to use!
  }
+    
+ @objc(setSpeakerOn)
+    func setSpeakerOn() -> Void {
+        // Switch to speaker do
+        let audioSession = AVAudioSession.sharedInstance()
+        do { try audioSession.overrideOutputAudioPort(AVAudioSession.PortOverride.speaker) } catch { // handle error
+            
+            //    client.start()
+            //  let seconds = 4.0
+            //  DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+            //      // Put your code which should be executed with a delay here
+            //      resolve(stunport)
+            //  }
+            
+            // Date is ready to use!
+        }}
+    @objc(setSpeakerOff)
+    func setSpeakerOff() -> Void {
+        let audioSession = AVAudioSession.sharedInstance()
+        do { try audioSession.setCategory(AVAudioSession.Category.playAndRecord) }
+        catch {
+            // handle error
+            
+        }
 
+   //    client.start()
+       //  let seconds = 4.0
+       //  DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+       //      // Put your code which should be executed with a delay here
+       //      resolve(stunport)
+       //  }
+
+      // Date is ready to use!
+    }
+        // Switch to speaker
+   
+    
+    
+
+    
+    
  @objc
  func constantsToExport() -> [String: Any]! {
    return ["someKey": "someValue"]

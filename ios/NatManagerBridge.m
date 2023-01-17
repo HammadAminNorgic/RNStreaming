@@ -15,6 +15,10 @@ RCT_EXTERN_METHOD(natTest:(NSString *)stunaddress
                   stunport:(nonnull NSNumber *)stunport
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
+
+
+RCT_EXTERN_METHOD(setSpeakerOn)
+RCT_EXTERN_METHOD(setSpeakerOff)
                   
 //                  :(NSString *)name location:(NSString *)location date:(nonnull NSNumber *)date)
 

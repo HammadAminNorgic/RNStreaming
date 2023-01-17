@@ -17,6 +17,8 @@ const ClientApp = () => {
   const [sdkConnected, setSdkConnected] = useState(false)
 
   const [callInProgress, setCallInprogress] = useState(false)
+  const [speakerOn, setSpeakerOn] = useState(false)
+
 
   const [calling, setCalling] = useState(false)
   const [callReceived, setCallReceived] = useState(false)
@@ -336,6 +338,15 @@ const ClientApp = () => {
     sdk.PauseStream()
 
   }
+
+const ToggleSpeakerOn=()=>{
+  sdk.SetSpeakerOn()
+}
+const ToggleSpeakerOff=()=>{
+  console.log('this is sdk',sdk);
+  sdk.SetSpeakerOff()
+}
+
   const ToggleAudioOn = () => {
     sdk.UnmuteMic()
   }
@@ -475,6 +486,8 @@ const ClientApp = () => {
           display: 'flex',
           flex: 1,
           // alignItems: "center",
+          backgroundColor:'green',
+          zIndex:10,
           justifyContent: "space-between",
 
           // paddingVertical: 50,
@@ -529,6 +542,8 @@ const ClientApp = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  backgroundColor:'yellow',
+                  zIndex:20
 
 
 
@@ -554,7 +569,7 @@ const ClientApp = () => {
 
                     </>
                   ) : (
-                    <View style={{ display: 'flex', flexDirection: "row", zIndex: 2, marginBottom: 50 }}>
+                    <View style={{ display: 'flex', flexDirection: "row", zIndex: 10, marginBottom: 50,backgroundColor:'red' }}>
                       {callType !== 'screen' && (<>
                         <TouchableOpacity onPress={() => {
                           switchCamera()
@@ -590,6 +605,21 @@ const ClientApp = () => {
                           <Image source={pausedAudio ? require('./assets/icons/micOff.png') : require('./assets/icons/micOn.png')} style={{ height: '70%', width: '70%', resizeMode: "contain" }} />
 
                         </TouchableOpacity></>)}
+
+                        <TouchableOpacity onPress={() => {
+                          if (speakerOn) {
+                            ToggleSpeakerOff()
+                          } else {
+                            ToggleSpeakerOn()
+
+                          }
+                          setSpeakerOn(!speakerOn)
+
+
+                        }} style={{ height: 40, width: 40, backgroundColor: '#E0E0E0', display: 'flex', borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center", marginHorizontal: 5 }}>
+                          <Image source={!speakerOn ? require('./assets/icons/speakerOff.png') : require('./assets/icons/speakerOn.png')} style={{ height: '70%', width: '70%', resizeMode: "contain" }} />
+
+                        </TouchableOpacity>
                       <TouchableOpacity onPress={() => {
                         endCall()
                       }} style={{ height: 40, width: 70, backgroundColor: 'red', display: 'flex', borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center" }}>
@@ -609,7 +639,7 @@ const ClientApp = () => {
 
           {
             (localStream || remoteStream) ? (
-              <View style={{ display: 'flex', height: '100%', position: 'absolute', width: "100%", }}>
+              <View style={{ display: 'flex', height: '100%', position: 'absolute', width: "100%",zIndex:9,backgroundColor:'rgba(0,0,0,0.5)' }}>
                 <View style={{ height: 150, width: 100, borderColor: 'red', zIndex: 2, position: 'absolute', bottom: 140, right: 20, borderWidth: 1, backgroundColor: 'grey' }}>
                   {/* <Text style={{ color: 'black' }}>local:</Text> */}
                   {localStream && (
@@ -729,7 +759,7 @@ const ClientApp = () => {
                     </>
                   ) : (
                     <>
-                      <View style={{ display: 'flex', flexDirection: "row", zIndex: 2, marginBottom: 50 }}>
+                      <View style={{ display: 'flex', flexDirection: "row", zIndex: 10, marginBottom: 50 }}>
                         {callType !== 'screen' && (<><TouchableOpacity onPress={() => {
                           switchCamera()
                         }} style={{ height: 40, width: 40, backgroundColor: '#E0E0E0', display: 'flex', borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center", marginHorizontal: 5 }}>
@@ -763,6 +793,20 @@ const ClientApp = () => {
                             <Image source={pausedAudio ? require('./assets/icons/micOff.png') : require('./assets/icons/micOn.png')} style={{ height: '70%', width: '70%', resizeMode: "contain" }} />
 
                           </TouchableOpacity></>)}
+                          <TouchableOpacity onPress={() => {
+                          if (speakerOn) {
+                            ToggleSpeakerOff()
+                          } else {
+                            ToggleSpeakerOn()
+
+                          }
+                          setSpeakerOn(!speakerOn)
+
+
+                        }} style={{ height: 40, width: 40, backgroundColor: '#E0E0E0', display: 'flex', borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center", marginHorizontal: 5 }}>
+                          <Image source={!speakerOn ? require('./assets/icons/speakerOff.png') : require('./assets/icons/speakerOn.png')} style={{ height: '70%', width: '70%', resizeMode: "contain" }} />
+
+                        </TouchableOpacity>
                         <TouchableOpacity onPress={() => {
                           endCall()
                         }} style={{ height: 40, width: 70, backgroundColor: 'red', display: 'flex', borderRadius: 40, display: 'flex', alignItems: "center", justifyContent: "center" }}>

@@ -805,6 +805,7 @@
 
 
 // @ts-nocheck
+import { NativeModules, Platform } from 'react-native';
 import Logger from './Logger';
 import mediaDevices from './MediaDevices';
 import MediaStream from './MediaStream';
@@ -822,6 +823,9 @@ import RTCView from './RTCView';
 import ScreenCapturePickerView from './ScreenCapturePickerView';
 import EventEmitter from 'events';
 import NetInfo from "@react-native-community/netinfo";
+
+
+const { VdotokStreamingModule } = NativeModules;
 export class Client extends EventEmitter {
     public ws: any;
     public project_id: any;
@@ -864,7 +868,7 @@ export class Client extends EventEmitter {
 //           let pc= new RTCPeerConnection(configuration)
 // console.log('i am here brothers',pc)
 //           return;
-this.sdk_credentials=_Credentials
+          this.sdk_credentials=_Credentials
           this.project_id = _Credentials.projectId
           this.Connect(_Credentials.host);
         //   notifee.onForegroundEvent(async ({ type, detail }) => {
@@ -899,6 +903,35 @@ this.sdk_credentials=_Credentials
       // aalert('stun')
       // Vdotok1.stun()
     }
+
+
+
+/**
+ * SetSpeakerOn
+ */
+public SetSpeakerOn() {
+  if(Platform.OS=='ios'){
+    console.log('speaker on ios');
+    
+   NativeModules.NatManager.setSpeakerOn()
+    return
+  }
+  VdotokStreamingModule.SetSpeakerOn()
+}
+/**
+ * SetSpeakerOff
+ */
+public SetSpeakerOff() {
+  // console.log('hellow from speaker off sdk',VdotokStreamingModule)
+  if(Platform.OS=='ios'){
+    console.log('speaker off ios');
+    NativeModules.NatManager.setSpeakerOff()
+     return
+   }
+  VdotokStreamingModule.SetSpeakerOff()
+}
+
+
     /**
      * ping
      */
@@ -987,8 +1020,6 @@ this.sdk_credentials=_Credentials
                 response['referenceID']=this.ref_id
                 delete response['responseCode']
                 delete response['responseMessage']
-
-
               }
                 let reqMessage=JSON.stringify(response);
                 this.log("===OnOffering Answer",reqMessage);
